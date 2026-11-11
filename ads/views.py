@@ -10,6 +10,10 @@ def dashboard_view(request):
     """Renders the custom frontend dashboard for the ad engine bot."""
     return render(request, 'ads/dashboard.html')
 
+def signup_view(request):
+    """Renders the global animated signup page."""
+    return render(request, 'ads/signup.html')
+
 @api_view(['POST'])
 def fund_account_balance(request):
     """
