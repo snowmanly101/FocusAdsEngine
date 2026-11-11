@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FocusAdsEngine - Cyber Ad Network Simulation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            background: #030712;
+            color: #38bdf8;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .hud-overlay {
+            position: absolute;
+            top: 20px;
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #0284c7;
+            padding: 15px 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #38bdf8;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+        }
+
+        p {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .control-panel-btn {
+            position: absolute;
+            bottom: 30px;
+            z-index: 10;
+            background: linear-gradient(135deg, #0284c7, #22c55e);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .control-panel-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hud-overlay">
+        <h1>FOCUS ADS ENGINE: NETWORK MATRIX</h1>
+        <p>Live Simulation: Multi-Platform Ad Target Routing & Conversion Nodes</p>
+    </div>
+
+    <canvas id="game-canvas"></canvas>
+
+    <button class="control-panel-btn" onclick="window.location.href='/api/dashboard/'">ENTER CONTROL PANEL</button>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Game Nodes representing Core Engine & Ad Networks (Meta, Google, TikTok, etc.)
+        const coreNode = { x: canvas.width / 2, y: canvas.height / 2, radius: 45, label: 'FOCUS ENGINE' };
+        
+        const satNodes = [
+            { x: 200, y: 150, radius: 25, label: 'META ADS', color: '#3b82f6' },
+            { x: canvas.width - 200, y: 150, radius: 25, label: 'GOOGLE ADS', color: '#ef4444' },
+            { x: 200, y: canvas.height - 150, radius: 25, label: 'TIKTOK ADS', color: '#ec4899' },
+            { x: canvas.width - 200, y: canvas.height - 150, radius: 25, label: 'LINKEDIN', color: '#10b981' }
+        ];
+
+        // Data packets flowing across network channels
+        let packets = [];
+        function spawnPacket() {
+            let target = satNodes[Math.floor(Math.random() * satNodes.length)];
+            packets.push({
+                x: coreNode.x,
+                y: coreNode.y,
+                targetX: target.x,
+                targetY: target.y,
+                progress: 0,
+                speed: 0.015 + Math.random() * 0.02,
+                color: target.color
+            });
+        }
+
+        setInterval(spawnPacket, 250);
+
+        function animate() {
+            ctx.fillStyle = 'rgba(3, 7, 18, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Update core node position dynamically on resize
+            coreNode.x = canvas.width / 2;
+            coreNode.y = canvas.height / 2;
+            satNodes[1].x = canvas.width - 200;
+            satNodes[2].y = canvas.height - 150;
+            satNodes[3].x = canvas.width - 200;
+            satNodes[3].y = canvas.height - 150;
+
+            // Draw network connecting beams
+            satNodes.forEach(node => {
+                ctx.beginPath();
+                ctx.moveTo(coreNode.x, coreNode.y);
+                ctx.lineTo(node.x, node.y);
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            // Draw and move data packets
+            packets.forEach((p, index) => {
+                p.progress += p.speed;
+                p.x = coreNode.x + (p.targetX - coreNode.x) * p.progress;
+                p.y = coreNode.y + (p.targetY - coreNode.y) * p.progress;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                if (p.progress >= 1) {
+                    packets.splice(index, 1);
+                }
+            });
+
+            // Draw Satellite Nodes
+            satNodes.forEach(node => {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#0f172a';
+                ctx.strokeStyle = node.color;
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = node.color;
+                ctx.fill();
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '10px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText(node.label, node.x, node.y + 4);
+            });
+
+            // Draw Central Core Node (Focus Engine)
+            ctx.beginPath();
+            ctx.arc(coreNode.x, coreNode.y, coreNode.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 25;
+            ctx.shadowColor = '#38bdf8';
+            ctx.fill();
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 12px Courier New';
+            ctx.textAlign = 'center';
+            ctx.fillText('FOCUS', coreNode.x, coreNode.y - 4);
+            ctx.fillText('CORE', coreNode.x, coreNode.y + 10);
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
