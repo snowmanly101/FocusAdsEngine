@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-change-me-in-production'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['focusadsengine.life', 'www.focusadsengine.life', '162.0.239.243']
 
 # Application definition
 
