@@ -8,9 +8,12 @@
         .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h1 { color: #1a73e8; margin-top: 0; }
         .profile-box { background: #e8f0fe; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #1a73e8; }
+        .terms-box { background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; max-height: 120px; overflow-y: auto; }
         .campaign-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 6px; background: #fafafa; }
         button { background: #1a73e8; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-size: 14px; }
         button:hover { background: #1557b0; }
+        .fund-btn { background: #28a745; margin-left: 10px; }
+        .fund-btn:hover { background: #218838; }
         .status { font-weight: bold; text-transform: uppercase; }
         hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
     </style>
@@ -20,10 +23,16 @@
         <h1>FocusAdsEngine Control Panel</h1>
         <p>Welcome to your central ad automation and management dashboard.</p>
         
+        <div class="terms-box">
+            <strong>Terms & Conditions (Mandatory Agreement):</strong><br>
+            By registering and utilizing FocusAdsEngine, you agree to comply with all social media advertising policies, platform guidelines, and local laws. All ad budget allocations and platform deductions are non-refundable once deployed to live networks (Meta, Google, TikTok, etc.). Fraudulent KYC data or unauthorized token usage will result in immediate account termination.
+        </div>
+
         <div class="profile-box">
             <h3>Account & Company Profile</h3>
-            <p><strong>Account Balance:</strong> <span id="user-balance" style="color: green; font-weight: bold;">Loading...</span></p>
-            <p><strong>KYC Verification Status:</strong> <span id="kyc-status" class="status">Loading...</span></p>
+            <p><strong>Account Balance:</strong> $<span id="user-balance" style="color: green; font-weight: bold;">0.00</span></p>
+            <p><strong>KYC Status:</strong> <span id="kyc-status" class="status">Pending ID & Facial Verification</span></p>
+            <button class="fund-btn" onclick="fundAccount()">Fund Account ($50.00 Test)</button>
         </div>
 
         <hr>
@@ -36,14 +45,12 @@
     <script>
         async function fetchDashboardData() {
             try {
-                // Fetch campaigns
                 let response = await fetch('/api/campaigns/');
                 let campaigns = await response.json();
                 let listDiv = document.getElementById('campaigns-list');
                 
-                // Simulate profile data for display purposes
-                document.getElementById('user-balance').innerText = '$0.00';
-                document.getElementById('kyc-status').innerText = 'PENDING (Submit ID & Facial Verification)';
+                document.getElementById('user-balance').innerText = '100.00';
+                document.getElementById('kyc-status').innerText = 'PENDING';
 
                 if (campaigns.length === 0) {
                     listDiv.innerHTML = '<p>No campaigns found yet. Create one in the Django Admin panel!</p>';
@@ -66,6 +73,28 @@
                 listDiv.innerHTML = html;
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
+            }
+        }
+
+        async function fundAccount() {
+            let username = prompt("Enter your username to fund balance:", "admin");
+            if (!username) return;
+
+            let response = await fetch('/api/fund-balance/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ username: username, amount: 50.00 })
+            });
+
+            let result = await response.json();
+            if (response.ok) {
+                alert(result.message);
+                document.getElementById('user-balance').innerText = result.new_balance;
+            } else {
+                alert("Error: " + result.error);
             }
         }
 

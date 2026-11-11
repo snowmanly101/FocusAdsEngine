@@ -5,11 +5,9 @@ from encrypted_model_fields.fields import EncryptedTextField
 class UserCompanyProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     company_name = models.CharField(max_length=255)
-    registration_number = models.CharField(max_length=100) # e.g., CAC number
+    registration_number = models.CharField(max_length=100)
     business_address = models.TextField()
     account_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    
-    # KYC & Identity Verification
     id_document = models.FileField(upload_to='kyc_ids/', blank=True, null=True)
     facial_verification_verified = models.BooleanField(default=False)
     kyc_status = models.CharField(
@@ -26,7 +24,7 @@ class UserCompanyProfile(models.Model):
 
 class AdAccountCredential(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    platform_name = models.CharField(max_length=50)  # 'Meta', 'Google', 'TikTok', 'LinkedIn', 'X'
+    platform_name = models.CharField(max_length=50)
     account_id = models.CharField(max_length=100)
     access_token = EncryptedTextField()
     is_active = models.BooleanField(default=True)
