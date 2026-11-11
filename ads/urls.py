@@ -15,11 +15,12 @@ router.register(r'credentials', AdAccountCredentialViewSet)
 router.register(r'campaigns', AdCampaignViewSet)
 
 urlpatterns = [
-    path('', adnetwork_game_view, name='root-network-matrix'),
-    path('signup/', signup_view, name='signup'),
+    path('', signin_view, name='root-signin'),
     path('signin/', signin_view, name='signin'),
+    path('signup/', signup_view, name='signup'),
     path('dashboard/', dashboard_view, name='dashboard'),
     path('network-matrix/', adnetwork_game_view, name='network-matrix'),
+    path('api/network-matrix/', adnetwork_game_view, name='api-network-matrix'),
     path('fund-balance/', fund_account_balance, name='fund-balance'),
     path('', include(router.urls)),
 ]
