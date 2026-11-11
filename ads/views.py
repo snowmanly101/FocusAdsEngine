@@ -18,6 +18,10 @@ def signin_view(request):
     """Renders the global animated sign in page."""
     return render(request, 'ads/signin.html')
 
+def adnetwork_game_view(request):
+    """Renders the interactive Network Matrix game and simulation view."""
+    return render(request, 'ads/network_matrix.html')
+
 @api_view(['POST'])
 def fund_account_balance(request):
     """
