@@ -14,6 +14,10 @@ def signup_view(request):
     """Renders the global animated signup page."""
     return render(request, 'ads/signup.html')
 
+def signin_view(request):
+    """Renders the global animated sign in page."""
+    return render(request, 'ads/signin.html')
+
 @api_view(['POST'])
 def fund_account_balance(request):
     """
