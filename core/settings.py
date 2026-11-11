@@ -95,8 +95,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Field Encryption Key for sensitive model credentials
-FIELD_ENCRYPTION_KEY = 'django-insecure-encryption-key-change-me-in-production'
+# Field Encryption Key for sensitive model credentials (Properly padded Fernet key)
+FIELD_ENCRYPTION_KEY = 'WnZ2WjhyZmp2a2VmbndrcXplbmtzaGRqYm5jandlaHk='
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
