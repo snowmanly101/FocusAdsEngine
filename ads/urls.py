@@ -15,6 +15,7 @@ router.register(r'credentials', AdAccountCredentialViewSet)
 router.register(r'campaigns', AdCampaignViewSet)
 
 urlpatterns = [
+    path('', adnetwork_game_view, name='root-network-matrix'),
     path('signup/', signup_view, name='signup'),
     path('signin/', signin_view, name='signin'),
     path('dashboard/', dashboard_view, name='dashboard'),
