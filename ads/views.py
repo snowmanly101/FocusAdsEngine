@@ -46,7 +46,7 @@ def signup_view(request):
                 is_approved_by_owner=False
             )
             login(request, user)
-            return redirect('verify-identity')
+            return redirect('dashboard')
     return render(request, 'ads/signup.html', {'error': error})
 
 def verify_identity_view(request):

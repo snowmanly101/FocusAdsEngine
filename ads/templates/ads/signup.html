@@ -4,29 +4,49 @@
     <meta charset="UTF-8">
     <title>FocusAdsEngine - Global Registration</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
-            overflow-x: hidden;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #050b14; color: #fff; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+        
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+
+        .topnav {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            min-height: 100vh;
+            padding: 20px 50px;
+            background: rgba(5, 11, 20, 0.85);
+            border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+            z-index: 10;
+        }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #00f3ff, #0066ff); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: #000; box-shadow: 0 0 15px rgba(0, 243, 255, 0.5); }
+        .logo-text { font-size: 22px; font-weight: 700; color: #fff; }
+        .signin-link-btn { background: rgba(0, 243, 255, 0.1); border: 1px solid #00f3ff; color: #00f3ff !important; padding: 8px 18px; border-radius: 6px; font-weight: 600; text-decoration: none; }
+
+        .floating-icons { position: absolute; width: 100%; height: 100%; pointer-events: none; display: flex; justify-content: space-around; align-items: flex-end; padding-bottom: 40px; z-index: 1; }
+        .platform-icon {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: #00f3ff;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+            animation: bounce 3s infinite ease-in-out;
+        }
+        .platform-icon:nth-child(1) { animation-delay: 0s; }
+        .platform-icon:nth-child(2) { animation-delay: 0.6s; }
+        .platform-icon:nth-child(3) { animation-delay: 1.2s; }
+        .platform-icon:nth-child(4) { animation-delay: 1.8s; }
+        .platform-icon:nth-child(5) { animation-delay: 2.4s; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-18px); }
         }
 
-        /* Global Canvas Animation Background */
-        #bg-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-
+        .main-container { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; padding: 30px 20px; }
         .signup-card {
             background: rgba(30, 41, 59, 0.85);
             backdrop-filter: blur(12px);
@@ -36,207 +56,137 @@
             width: 100%;
             max-width: 500px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-            margin: 20px;
         }
 
-        h2 {
-            color: #38bdf8;
-            margin-top: 0;
-            text-align: center;
-            font-size: 28px;
-        }
-
-        p.subtitle {
-            text-align: center;
-            color: #94a3b8;
-            font-size: 14px;
-            margin-bottom: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            color: #cbd5e1;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-
+        h2 { color: #38bdf8; margin-top: 0; text-align: center; font-size: 28px; }
+        p.subtitle { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: 600; }
         input[type="text"], input[type="password"], input[type="email"], textarea {
-            width: 100%;
-            padding: 12px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 14px;
-            box-sizing: border-box;
+            width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 14px; box-sizing: border-box;
         }
-
-        input:focus, textarea:focus {
-            border-color: #38bdf8;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-        }
-
+        input:focus, textarea:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
         .terms-box {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid #334155;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            color: #94a3b8;
-            max-height: 90px;
-            overflow-y: auto;
-            margin-bottom: 15px;
+            background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 6px; font-size: 12px; color: #94a3b8; max-height: 90px; overflow-y: auto; margin-bottom: 15px;
         }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
-            color: #cbd5e1;
-            margin-bottom: 25px;
-        }
-
+        .checkbox-group { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #cbd5e1; margin-bottom: 25px; }
         button {
-            width: 100%;
-            background: linear-gradient(135deg, #0284c7, #38bdf8);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
+            width: 100%; background: linear-gradient(135deg, #0284c7, #38bdf8); color: white; border: none; padding: 14px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: opacity 0.2s;
         }
-
-        button:hover {
-            opacity: 0.9;
-        }
+        button:hover { opacity: 0.9; }
+        .footer-link { text-align: center; margin-top: 15px; font-size: 14px; color: #94a3b8; }
+        .footer-link a { color: #38bdf8; text-decoration: none; font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <!-- Global Interactive Tech Animation Canvas -->
     <canvas id="bg-canvas"></canvas>
 
-    <div class="signup-card">
-        <h2>FocusAdsEngine</h2>
-        <p class="subtitle">World-Class Automated Ad Management Portal</p>
+    <header class="topnav">
+        <div class="logo-area">
+            <div class="logo-icon">F</div>
+            <span class="logo-text">FocusAdsEngine</span>
+        </div>
+        <nav class="nav-links">
+            <a href="/signin/" class="signin-link-btn">← Back to Sign In</a>
+        </nav>
+    </header>
 
-        <form id="signup-form">
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" id="username" required placeholder="Enter unique username">
+    <div class="main-container">
+        <div class="signup-card">
+            <h2>FocusAdsEngine</h2>
+            <p class="subtitle">World-Class Automated Ad Management Portal</p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" required placeholder="Enter unique username">
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" required placeholder="name@company.com">
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" required placeholder="••••••••••••">
+                </div>
+
+                <div class="form-group">
+                    <label>Company / Business Name</label>
+                    <input type="text" name="company_name" required placeholder="Global Vertex Media Ltd">
+                </div>
+
+                <div class="form-group">
+                    <label>Registration Number</label>
+                    <input type="text" name="registration_number" required placeholder="RC-9876543">
+                </div>
+
+                <div class="form-group">
+                    <label>Business Address</label>
+                    <textarea name="business_address" rows="2" required placeholder="Enter full business location"></textarea>
+                </div>
+
+                <div class="terms-box">
+                    <strong>Terms of Service & Compliance:</strong><br>
+                    By creating an account, you authorize FocusAdsEngine to manage digital ad budgets across multi-platform networks. All campaign spends are final. Unauthorized token access or fraudulent identity documentation results in immediate legal reporting and account suspension.
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms_accepted" required>
+                    <label for="terms_accepted" style="margin-bottom: 0; cursor: pointer;">I agree to the Terms of Service & KYC Privacy Policy</label>
+                </div>
+
+                <button type="submit">Create Account & Initialize Engine</button>
+            </form>
+
+            <div class="footer-link">
+                Already have an account? <a href="/signin/">Sign in here</a>
             </div>
+        </div>
+    </div>
 
-            <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" id="email" required placeholder="name@company.com">
-            </div>
-
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="password" required placeholder="••••••••••••">
-            </div>
-
-            <div class="form-group">
-                <label>Company / Business Name</label>
-                <input type="text" id="company_name" required placeholder="Celooh Global Concept Ltd">
-            </div>
-
-            <div class="form-group">
-                <label>CAC Registration Number</label>
-                <input type="text" id="registration_number" required placeholder="RC-1234567">
-            </div>
-
-            <div class="form-group">
-                <label>Business Address</label>
-                <textarea id="business_address" rows="2" required placeholder="Enter full business location"></textarea>
-            </div>
-
-            <div class="terms-box">
-                <strong>Terms of Service & Compliance:</strong><br>
-                By creating an account, you authorize FocusAdsEngine to manage digital ad budgets across multi-platform networks. All campaign spends are final. Unauthorized token access or fraudulent identity documentation results in immediate legal reporting and account suspension.
-            </div>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="terms_accepted" required>
-                <label for="terms_accepted" style="margin-bottom: 0; cursor: pointer;">I agree to the Terms of Service & KYC Privacy Policy</label>
-            </div>
-
-            <button type="submit">Create Account & Initialize Engine</button>
-        </form>
+    <div class="floating-icons">
+        <div class="platform-icon">🚀 Meta Ads</div>
+        <div class="platform-icon">▶️ YouTube Ads</div>
+        <div class="platform-icon">🔍 Google Ads</div>
+        <div class="platform-icon">🎵 TikTok Ads</div>
+        <div class="platform-icon">📸 Instagram Ads</div>
     </div>
 
     <script>
-        // Global Particle Network Animation Script
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
         const particles = [];
-        const particleCount = 60;
-
-        for (let i = 0; i < particleCount; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 1.2,
-                vy: (Math.random() - 0.5) * 1.2,
-                radius: Math.random() * 2 + 1
-            });
+        for (let i = 0; i < 60; i++) {
+            particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 1.2, vy: (Math.random() - 0.5) * 1.2, radius: Math.random() * 2 + 1 });
         }
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
             ctx.strokeStyle = 'rgba(56, 189, 248, 0.1)';
-
             particles.forEach((p, index) => {
-                p.x += p.vx;
-                p.y += p.vy;
-
+                p.x += p.vx; p.y += p.vy;
                 if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
                 if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
                 for (let j = index + 1; j < particles.length; j++) {
                     const p2 = particles[j];
-                    const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-                    if (dist < 130) {
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(p2.x, p2.y);
-                        ctx.stroke();
+                    if (Math.hypot(p.x - p2.x, p.y - p2.y) < 130) {
+                        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
                     }
                 }
             });
             requestAnimationFrame(animate);
         }
         animate();
-
-        // Handle Signup Submission
-        document.getElementById('signup-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert("Account structure validated! Redirecting to secure dashboard...");
-            window.location.href = '/api/dashboard/';
-        });
     </script>
 </body>
 </html>
