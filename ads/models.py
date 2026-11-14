@@ -23,7 +23,7 @@ class AdAccountCredential(models.Model):
     profile = models.ForeignKey(UserCompanyProfile, on_delete=models.CASCADE, related_name='credentials')
     platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
     access_token = models.TextField()
-    ad_account_id = models.CharField(max_length=100)
+    ad_account_id = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
 class AdCampaign(models.Model):
@@ -36,7 +36,7 @@ class AdCampaign(models.Model):
     profile = models.ForeignKey(UserCompanyProfile, on_delete=models.CASCADE, related_name='campaigns')
     title = models.CharField(max_length=255)
     platform = models.CharField(max_length=20)
-    budget = models.DecimalField(max_digits=10, decimal_places=2)
+    budget = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
