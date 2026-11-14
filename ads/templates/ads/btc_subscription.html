@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusAdsEngine - Platform Subscription</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #050b14; color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card { background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 16px; padding: 35px; width: 100%; max-width: 500px; box-shadow: 0 0 40px rgba(0, 243, 255, 0.15); text-align: center; }
+        h1 { color: #00f3ff; font-size: 24px; margin-bottom: 10px; }
+        .price { font-size: 32px; font-weight: bold; color: #34d399; margin: 15px 0; }
+        p { color: #94a3b8; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        .btc-address { background: #0f172a; border: 1px dashed #00f3ff; padding: 12px; border-radius: 8px; color: #00f3ff; font-family: monospace; font-size: 14px; margin-bottom: 20px; word-break: break-all; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; font-size: 14px; margin-bottom: 15px; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #00f3ff, #0066ff); border: none; border-radius: 8px; color: #050b14; font-size: 16px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Platform Activation</h1>
+        <p>To initialize and maintain your access to FocusAdsEngine, a monthly subscription fee is required.</p>
+        <div class="price">$30 / Month</div>
+        <p>Send exactly $30 equivalent in Bitcoin (BTC) to our secure network wallet below:</p>
+        
+        <div class="btc-address">bc1qtqnjd0v2ywaffx39jqarjav6w7vkug2t3yuznd</div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="btc_tx_hash" placeholder="Enter Bitcoin Transaction Hash (TXID)" required>
+            <button type="submit">Verify & Proceed to Verification</button>
+        </form>
+    </div>
+</body>
+</html>

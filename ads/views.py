@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
-from .models import UserCompanyProfile, AdAccountCredential, AdCampaign
-from .serializers import AdAccountCredentialSerializer, AdCampaignSerializer
+from .models import UserCompanyProfile, AdCampaign
+from .serializers import AdCampaignSerializer
 from .services import AdEngineBotService
 
 def signin_view(request):
@@ -19,6 +19,8 @@ def signin_view(request):
             if user.is_superuser or user.is_staff:
                 return redirect('dashboard')
             profile, _ = UserCompanyProfile.objects.get_or_create(user=user)
+            if not profile.subscription_paid:
+                return redirect('btc-subscription')
             if not profile.is_approved_by_owner:
                 return redirect('pending-approval')
             return redirect('dashboard')
@@ -46,23 +48,35 @@ def signup_view(request):
                 registration_number=reg_no,
                 verification_method=verification_method,
                 face_verified=True if verification_method == 'face' else False,
+                subscription_paid=False,
                 is_approved_by_owner=False
             )
             login(request, user)
-            if verification_method == 'api':
-                return redirect('api-interview')
-            return redirect('verify-identity')
+            return redirect('btc-subscription')
     return render(request, 'ads/signup.html', {'error': error})
 
-def verify_identity_view(request):
+def btc_subscription_view(request):
+    profile = get_object_or_404(UserCompanyProfile, user=request.user)
     if request.method == 'POST':
-        profile = get_object_or_404(UserCompanyProfile, user=request.user)
+        tx_hash = request.POST.get('btc_tx_hash')
+        if tx_hash:
+            profile.btc_tx_hash = tx_hash
+            profile.subscription_paid = True
+            profile.save()
+            if profile.verification_method == 'api':
+                return redirect('api-interview')
+            return redirect('verify-identity')
+    return render(request, 'ads/btc_subscription.html', {'profile': profile})
+
+def verify_identity_view(request):
+    profile = get_object_or_404(UserCompanyProfile, user=request.user)
+    if request.method == 'POST':
         if 'id_document' in request.FILES:
             profile.id_document = request.FILES['id_document']
         profile.face_verified = True
         profile.save()
         return redirect('pending-approval')
-    return render(request, 'ads/verify.html')
+    return render(request, 'ads/verify.html', {'profile': profile})
 
 def api_interview_view(request):
     profile = get_object_or_404(UserCompanyProfile, user=request.user)
@@ -73,6 +87,9 @@ def api_interview_view(request):
     return render(request, 'ads/api_interview.html', {'profile': profile})
 
 def pending_approval_view(request):
+    profile = get_object_or_404(UserCompanyProfile, user=request.user)
+    if profile.is_approved_by_owner:
+        return redirect('dashboard')
     return render(request, 'ads/pending.html')
 
 def about_view(request):
@@ -103,7 +120,7 @@ def owner_portal_view(request):
             profile.delete()
         return redirect('/owner-matrix/?code=CELOOH2026ADMIN')
 
-    pending_profiles = UserCompanyProfile.objects.filter(is_approved_by_owner=False)
+    pending_profiles = UserCompanyProfile.objects.filter(is_approved_by_owner=False, subscription_paid=True)
     approved_profiles = UserCompanyProfile.objects.filter(is_approved_by_owner=True)
     return render(request, 'ads/owner_portal.html', {
         'pending_profiles': pending_profiles,
@@ -114,9 +131,28 @@ def dashboard_view(request):
     if not request.user.is_authenticated:
         return redirect('signin')
     profile, _ = UserCompanyProfile.objects.get_or_create(user=request.user)
+    if not profile.subscription_paid:
+        return redirect('btc-subscription')
     if not profile.is_approved_by_owner and not request.user.is_superuser:
         return redirect('pending-approval')
     
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        platforms_list = request.POST.getlist('platforms') # checkboxes
+        platforms_str = ",".join(platforms_list)
+        budget = request.POST.get('budget')
+        ad_video = request.FILES.get('ad_video')
+        
+        AdCampaign.objects.create(
+            profile=profile,
+            title=title,
+            platforms=platforms_str,
+            budget=budget,
+            ad_video=ad_video,
+            status='active'
+        )
+        return redirect('dashboard')
+
     campaigns = AdCampaign.objects.filter(profile=profile)
     return render(request, 'ads/dashboard.html', {'profile': profile, 'campaigns': campaigns})
 
@@ -134,21 +170,6 @@ def fund_account_balance(request):
     profile.save()
     return Response({"status": "success", "new_balance": profile.account_balance}, status=status.HTTP_200_OK)
 
-class AdAccountCredentialViewSet(viewsets.ModelViewSet):
-    queryset = AdAccountCredential.objects.all()
-    serializer_class = AdAccountCredentialSerializer
-
 class AdCampaignViewSet(viewsets.ModelViewSet):
     queryset = AdCampaign.objects.all()
     serializer_class = AdCampaignSerializer
-
-    @action(detail=True, methods=['post'])
-    def deploy(self, request, pk=None):
-        campaign = self.get_object()
-        bot_service = AdEngineBotService(campaign)
-        result = bot_service.deploy_campaign()
-        if result.get("status") == "success":
-            campaign.status = 'active'
-            campaign.save()
-            return Response(result, status=status.HTTP_200_OK)
-        return Response(result, status=status.HTTP_400_BAD_REQUEST)

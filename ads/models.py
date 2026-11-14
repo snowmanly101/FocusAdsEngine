@@ -8,39 +8,30 @@ class UserCompanyProfile(models.Model):
     account_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     id_document = models.FileField(upload_to='kyc_ids/', blank=True, null=True)
     face_verified = models.BooleanField(default=False)
-    verification_method = models.CharField(max_length=50, default='face') # 'face' or 'api'
-    api_interview_status = models.CharField(max_length=50, default='pending') # 'pending', 'scheduled', 'recorded_and_reviewed'
+    verification_method = models.CharField(max_length=50, default='face')
+    api_interview_status = models.CharField(max_length=50, default='pending')
+    subscription_paid = models.BooleanField(default=False)
+    btc_tx_hash = models.CharField(max_length=255, blank=True, null=True)
     is_approved_by_owner = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.company_name} ({self.user.username})"
 
-class AdAccountCredential(models.Model):
-    PLATFORM_CHOICES = [
-        ('meta', 'Meta Ads'),
-        ('google', 'Google Ads'),
-        ('tiktok', 'TikTok Ads'),
-    ]
-    profile = models.ForeignKey(UserCompanyProfile, on_delete=models.CASCADE, related_name='credentials')
-    platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
-    access_token = models.TextField()
-    ad_account_id = models.CharField(max_length=100, blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-
 class AdCampaign(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending Deployment'),
+        ('pending', 'Pending Review & Deployment'),
         ('active', 'Active & Running'),
-        ('paused', 'Paused'),
+        ('flagged', 'Flagged & Removed (Terms Violation)'),
         ('completed', 'Completed'),
     ]
     profile = models.ForeignKey(UserCompanyProfile, on_delete=models.CASCADE, related_name='campaigns')
     title = models.CharField(max_length=255)
-    platform = models.CharField(max_length=20)
-    budget = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    platforms = models.CharField(max_length=255) # Stores comma-separated choices e.g. "meta,tiktok"
+    budget = models.DecimalField(max_digits=10, decimal_places=2)
+    ad_video = models.FileField(upload_to='ad_videos/', blank=True, null=True)
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.title} - {self.platform} (${self.budget})"
+        return f"{self.title} - (${self.budget})"

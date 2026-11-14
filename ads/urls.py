@@ -1,13 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    AdAccountCredentialViewSet, 
     AdCampaignViewSet, 
     dashboard_view, 
     signup_view, 
     signin_view, 
     verify_identity_view,
     api_interview_view,
+    btc_subscription_view,
     pending_approval_view,
     about_view,
     feedback_view,
@@ -18,13 +18,13 @@ from .views import (
 )
 
 router = DefaultRouter()
-router.register(r'credentials', AdAccountCredentialViewSet)
 router.register(r'campaigns', AdCampaignViewSet)
 
 urlpatterns = [
     path('', signin_view, name='root-signin'),
     path('signin/', signin_view, name='signin'),
     path('signup/', signup_view, name='signup'),
+    path('btc-subscription/', btc_subscription_view, name='btc-subscription'),
     path('verify/', verify_identity_view, name='verify-identity'),
     path('api-interview/', api_interview_view, name='api-interview'),
     path('pending/', pending_approval_view, name='pending-approval'),
