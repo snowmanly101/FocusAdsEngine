@@ -13,6 +13,7 @@ class UserCompanyProfile(models.Model):
     subscription_paid = models.BooleanField(default=False)
     btc_tx_hash = models.CharField(max_length=255, blank=True, null=True)
     is_approved_by_owner = models.BooleanField(default=False)
+    api_key = models.CharField(max_length=255, blank=True, null=True) # <-- Added API key field
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
