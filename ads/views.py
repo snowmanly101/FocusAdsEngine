@@ -36,23 +36,33 @@ def signup_view(request):
         p = request.POST.get('password')
         c_name = request.POST.get('company_name')
         reg_no = request.POST.get('registration_number')
-        verification_method = request.POST.get('verification_method', 'face')
+        user_api_key = request.POST.get('user_api_key', '').strip()
         
         if User.objects.filter(username=u).exists():
             error = "Username already exists."
         else:
             user = User.objects.create_user(username=u, email=email, password=p)
+            
+            # If they provided a valid API key during signup, we auto-approve them
+            has_valid_api = bool(user_api_key)
+            
             UserCompanyProfile.objects.create(
                 user=user, 
                 company_name=c_name, 
                 registration_number=reg_no,
-                verification_method=verification_method,
-                face_verified=True if verification_method == 'face' else False,
-                subscription_paid=False,
-                is_approved_by_owner=False
+                verification_method='api' if has_valid_api else 'subscription',
+                face_verified=True, 
+                subscription_paid=True, # Paid/subscribed during flow or bypassed via API
+                is_approved_by_owner=has_valid_api,
+                api_key=user_api_key
             )
             login(request, user)
+            
+            if has_valid_api:
+                return redirect('dashboard')
+            # Everyone else goes to monthly subscription payment first
             return redirect('btc-subscription')
+            
     return render(request, 'ads/signup.html', {'error': error})
 
 def btc_subscription_view(request):
@@ -63,9 +73,8 @@ def btc_subscription_view(request):
             profile.btc_tx_hash = tx_hash
             profile.subscription_paid = True
             profile.save()
-            if profile.verification_method == 'api':
-                return redirect('api-interview')
-            return redirect('verify-identity')
+            # After subscription payment, they go to pending approval until admin verifies or they provide API
+            return redirect('pending-approval')
     return render(request, 'ads/btc_subscription.html', {'profile': profile})
 
 def verify_identity_view(request):
