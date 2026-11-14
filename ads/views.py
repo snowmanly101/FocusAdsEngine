@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
+import secrets
 from .models import UserCompanyProfile, AdCampaign
 from .serializers import AdCampaignSerializer
 from .services import AdEngineBotService
@@ -44,13 +45,17 @@ def signup_view(request):
             user = User.objects.create_user(username=u, email=email, password=p)
             has_valid_api = bool(user_api_key)
             
+            # If they provided an API key, generate/save it and auto-approve
+            if not user_api_key and has_valid_api:
+                user_api_key = f"FAE-API-{secrets.token_hex(8).upper()}"
+            
             UserCompanyProfile.objects.create(
                 user=user, 
                 company_name=c_name, 
                 registration_number=reg_no,
                 verification_method='api' if has_valid_api else 'subscription',
                 face_verified=True, 
-                subscription_paid=True,
+                subscription_paid=has_valid_api,
                 is_approved_by_owner=has_valid_api,
                 api_key=user_api_key
             )
@@ -69,8 +74,14 @@ def btc_subscription_view(request):
         if tx_hash:
             profile.btc_tx_hash = tx_hash
             profile.subscription_paid = True
+            
+            # Automatically generate an API key upon successful payment if none exists
+            if not profile.api_key:
+                profile.api_key = f"FAE-API-{secrets.token_hex(8).upper()}"
+            
+            profile.is_approved_by_owner = True
             profile.save()
-            return redirect('pending-approval')
+            return redirect('dashboard')
     return render(request, 'ads/btc_subscription.html', {'profile': profile})
 
 def verify_identity_view(request):
