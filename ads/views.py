@@ -42,8 +42,6 @@ def signup_view(request):
             error = "Username already exists."
         else:
             user = User.objects.create_user(username=u, email=email, password=p)
-            
-            # If they provided a valid API key during signup, we auto-approve them
             has_valid_api = bool(user_api_key)
             
             UserCompanyProfile.objects.create(
@@ -52,7 +50,7 @@ def signup_view(request):
                 registration_number=reg_no,
                 verification_method='api' if has_valid_api else 'subscription',
                 face_verified=True, 
-                subscription_paid=True, # Paid/subscribed during flow or bypassed via API
+                subscription_paid=True,
                 is_approved_by_owner=has_valid_api,
                 api_key=user_api_key
             )
@@ -60,7 +58,6 @@ def signup_view(request):
             
             if has_valid_api:
                 return redirect('dashboard')
-            # Everyone else goes to monthly subscription payment first
             return redirect('btc-subscription')
             
     return render(request, 'ads/signup.html', {'error': error})
@@ -73,7 +70,6 @@ def btc_subscription_view(request):
             profile.btc_tx_hash = tx_hash
             profile.subscription_paid = True
             profile.save()
-            # After subscription payment, they go to pending approval until admin verifies or they provide API
             return redirect('pending-approval')
     return render(request, 'ads/btc_subscription.html', {'profile': profile})
 
@@ -99,7 +95,37 @@ def pending_approval_view(request):
     profile = get_object_or_404(UserCompanyProfile, user=request.user)
     if profile.is_approved_by_owner:
         return redirect('dashboard')
-    return render(request, 'ads/pending.html')
+    
+    error = None
+    success_msg = None
+    
+    if request.method == 'POST':
+        form_action = request.POST.get('form_action')
+        
+        if form_action == 'submit_api':
+            entered_key = request.POST.get('api_key', '').strip()
+            if entered_key:
+                profile.api_key = entered_key
+                profile.is_approved_by_owner = True
+                profile.save()
+                return redirect('dashboard')
+            else:
+                error = "Please enter a valid API key."
+                
+        elif form_action == 'contact_verification':
+            full_name = request.POST.get('full_name')
+            email = request.POST.get('email')
+            message = request.POST.get('message')
+            if full_name and email:
+                success_msg = "Verification details received! Our team will contact you via email to schedule your AnyDesk interview."
+            else:
+                error = "Please fill in your full name and email."
+                
+    return render(request, 'ads/pending.html', {
+        'profile': profile,
+        'error': error,
+        'success_msg': success_msg
+    })
 
 def about_view(request):
     return render(request, 'ads/about.html')
@@ -147,7 +173,7 @@ def dashboard_view(request):
     
     if request.method == 'POST':
         title = request.POST.get('title')
-        platforms_list = request.POST.getlist('platforms') # checkboxes
+        platforms_list = request.POST.getlist('platforms')
         platforms_str = ",".join(platforms_list)
         budget = request.POST.get('budget')
         ad_video = request.FILES.get('ad_video')
