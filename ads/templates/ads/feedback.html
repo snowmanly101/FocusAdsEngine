@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusAdsEngine - Feedback</title>
+    <style>
+        body { background-color: #050b14; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: 40px auto; background: rgba(30, 41, 59, 0.85); padding: 40px; border-radius: 12px; border: 1px solid rgba(0,243,255,0.3); }
+        h1 { color: #00f3ff; margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #00f3ff; color: #050b14; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+        .success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; padding: 12px; border-radius: 6px; margin-bottom: 15px; text-align: center; }
+        a { color: #00f3ff; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Platform Feedback</h1>
+        {% if success %}
+        <div class="success">Thank you! Your feedback has been transmitted securely to the network review team.</div>
+        {% endif %}
+        <form method="POST">
+            {% csrf_token %}
+            <textarea name="feedback_text" rows="5" placeholder="Share your experience or suggestions..." required></textarea>
+            <button type="submit">Submit Feedback</button>
+        </form>
+        <br><a href="/signin/">← Back to Sign In</a>
+    </div>
+</body>
+</html>

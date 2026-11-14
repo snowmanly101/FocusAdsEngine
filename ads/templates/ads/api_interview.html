@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="ÚTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusAdsEngine - API Security Interview</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #050b14; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .card { background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 16px; padding: 30px; width: 100%; max-width: 600px; text-align: center; box-shadow: 0 0 40px rgba(0, 243, 255, 0.15); }
+        h1 { color: #00f3ff; font-size: 24px; margin-bottom: 10px; }
+        p { color: #94a3b8; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        .camera-box { width: 100%; height: 260px; background: #0f172a; border: 2px dashed #00f3ff; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .notice { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; padding: 12px; border-radius: 8px; font-size: 12px; margin-bottom: 20px; text-align: left; }
+        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #00f3ff, #0066ff); border: none; border-radius: 8px; color: #050b14; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>API Security Interview</h1>
+        <p>To obtain FocusAdsEngine API credentials, network compliance protocol requires a live camera verification interview.</p>
+        
+        <div class="notice">
+            <strong>Security Notice:</strong> All live camera interviews are recorded, monitored, and analyzed by the automated security matrix to prevent unauthorized ad token usage and fraud.
+        </div>
+
+        <div class="camera-box">
+            <video id="webcam" autoplay playsinline></video>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn">Complete Interview & Submit for Review</button>
+        </form>
+    </div>
+
+    <script>
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                document.getElementById('webcam').srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Camera access denied:", err);
+            });
+    </script>
+</body>
+</html>

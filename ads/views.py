@@ -34,6 +34,7 @@ def signup_view(request):
         p = request.POST.get('password')
         c_name = request.POST.get('company_name')
         reg_no = request.POST.get('registration_number')
+        verification_method = request.POST.get('verification_method', 'face')
         
         if User.objects.filter(username=u).exists():
             error = "Username already exists."
@@ -43,10 +44,14 @@ def signup_view(request):
                 user=user, 
                 company_name=c_name, 
                 registration_number=reg_no,
+                verification_method=verification_method,
+                face_verified=True if verification_method == 'face' else False,
                 is_approved_by_owner=False
             )
             login(request, user)
-            return redirect('dashboard')
+            if verification_method == 'api':
+                return redirect('api-interview')
+            return redirect('verify-identity')
     return render(request, 'ads/signup.html', {'error': error})
 
 def verify_identity_view(request):
@@ -59,8 +64,28 @@ def verify_identity_view(request):
         return redirect('pending-approval')
     return render(request, 'ads/verify.html')
 
+def api_interview_view(request):
+    profile = get_object_or_404(UserCompanyProfile, user=request.user)
+    if request.method == 'POST':
+        profile.api_interview_status = 'recorded_and_reviewed'
+        profile.save()
+        return redirect('pending-approval')
+    return render(request, 'ads/api_interview.html', {'profile': profile})
+
 def pending_approval_view(request):
     return render(request, 'ads/pending.html')
+
+def about_view(request):
+    return render(request, 'ads/about.html')
+
+def feedback_view(request):
+    success = False
+    if request.method == 'POST':
+        success = True
+    return render(request, 'ads/feedback.html', {'success': success})
+
+def terms_view(request):
+    return render(request, 'ads/terms.html')
 
 def owner_portal_view(request):
     secret_code = request.GET.get('code') or request.POST.get('code')

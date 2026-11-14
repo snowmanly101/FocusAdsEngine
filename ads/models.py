@@ -8,6 +8,8 @@ class UserCompanyProfile(models.Model):
     account_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     id_document = models.FileField(upload_to='kyc_ids/', blank=True, null=True)
     face_verified = models.BooleanField(default=False)
+    verification_method = models.CharField(max_length=50, default='face') # 'face' or 'api'
+    api_interview_status = models.CharField(max_length=50, default='pending') # 'pending', 'scheduled', 'recorded_and_reviewed'
     is_approved_by_owner = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
