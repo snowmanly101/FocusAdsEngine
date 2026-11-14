@@ -95,6 +95,12 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# HTTPS Proxy & CSRF Security Fixes for Nginx
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = ['https://focusadsengine.life', 'https://www.focusadsengine.life']
+
 # Field Encryption Key for sensitive model credentials (Properly padded Fernet key)
 FIELD_ENCRYPTION_KEY = 'WnZ2WjhyZmp2a2VmbndrcXplbmtzaGRqYm5jandlaHk='
 
