@@ -1,6 +1,10 @@
+import json
+import decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, JsonResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
@@ -45,7 +49,6 @@ def signup_view(request):
             user = User.objects.create_user(username=u, email=email, password=p)
             has_valid_api = bool(user_api_key)
             
-            # If they provided an API key, generate/save it and auto-approve
             if not user_api_key and has_valid_api:
                 user_api_key = f"FAE-API-{secrets.token_hex(8).upper()}"
             
@@ -74,11 +77,8 @@ def btc_subscription_view(request):
         if tx_hash:
             profile.btc_tx_hash = tx_hash
             profile.subscription_paid = True
-            
-            # Automatically generate an API key upon successful payment if none exists
             if not profile.api_key:
                 profile.api_key = f"FAE-API-{secrets.token_hex(8).upper()}"
-            
             profile.is_approved_by_owner = True
             profile.save()
             return redirect('dashboard')
@@ -112,7 +112,6 @@ def pending_approval_view(request):
     
     if request.method == 'POST':
         form_action = request.POST.get('form_action')
-        
         if form_action == 'submit_api':
             entered_key = request.POST.get('api_key', '').strip()
             if entered_key:
@@ -122,21 +121,16 @@ def pending_approval_view(request):
                 return redirect('dashboard')
             else:
                 error = "Please enter a valid API key."
-                
         elif form_action == 'contact_verification':
             full_name = request.POST.get('full_name')
             email = request.POST.get('email')
             message = request.POST.get('message')
             if full_name and email:
-                success_msg = "Verification details received! Our team will contact you via email to schedule your AnyDesk interview."
+                success_msg = "Verification details received! Our team will contact you via email."
             else:
                 error = "Please fill in your full name and email."
                 
-    return render(request, 'ads/pending.html', {
-        'profile': profile,
-        'error': error,
-        'success_msg': success_msg
-    })
+    return render(request, 'ads/pending.html', {'profile': profile, 'error': error, 'success_msg': success_msg})
 
 def about_view(request):
     return render(request, 'ads/about.html')
@@ -168,10 +162,7 @@ def owner_portal_view(request):
 
     pending_profiles = UserCompanyProfile.objects.filter(is_approved_by_owner=False, subscription_paid=True)
     approved_profiles = UserCompanyProfile.objects.filter(is_approved_by_owner=True)
-    return render(request, 'ads/owner_portal.html', {
-        'pending_profiles': pending_profiles,
-        'approved_profiles': approved_profiles
-    })
+    return render(request, 'ads/owner_portal.html', {'pending_profiles': pending_profiles, 'approved_profiles': approved_profiles})
 
 def dashboard_view(request):
     if not request.user.is_authenticated:
@@ -184,6 +175,13 @@ def dashboard_view(request):
     
     if request.method == 'POST':
         title = request.POST.get('title')
+        objective = request.POST.get('campaign_objective', 'website')
+        description = request.POST.get('description', '')
+        audience_type = request.POST.get('target_audience_type', 'general')
+        target_age = request.POST.get('target_age', '') if audience_type == 'custom' else 'General (All Ages)'
+        target_countries = request.POST.get('target_countries', '') if audience_type == 'custom' else 'Global / Worldwide'
+        target_gender = request.POST.get('target_gender', 'all') if audience_type == 'custom' else 'All Genders'
+        
         platforms_list = request.POST.getlist('platforms')
         platforms_str = ",".join(platforms_list)
         budget = request.POST.get('budget')
@@ -192,6 +190,12 @@ def dashboard_view(request):
         AdCampaign.objects.create(
             profile=profile,
             title=title,
+            campaign_objective=objective,
+            description=description,
+            target_audience_type=audience_type,
+            target_age=target_age,
+            target_countries=target_countries,
+            target_gender=target_gender,
             platforms=platforms_str,
             budget=budget,
             ad_video=ad_video,
@@ -201,6 +205,31 @@ def dashboard_view(request):
 
     campaigns = AdCampaign.objects.filter(profile=profile)
     return render(request, 'ads/dashboard.html', {'profile': profile, 'campaigns': campaigns})
+
+@csrf_exempt
+def btcpay_webhook_view(request):
+    """
+    BTCPay Server Webhook Listener detecting 4 block confirmations.
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            event_type = data.get('type')
+            metadata = data.get('metadata', {})
+            username = metadata.get('username') or data.get('orderId')
+            confirmations = data.get('confirmations', 0)
+            
+            if event_type in ['InvoiceSettled', 'InvoicePaymentSettled'] and username and confirmations >= 4:
+                profile = UserCompanyProfile.objects.filter(user__username=username).first()
+                if profile:
+                    topup_amount = decimal.Decimal(str(data.get('price', 50.00)))
+                    profile.account_balance += topup_amount
+                    profile.save()
+                    return HttpResponse(status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+            
+    return HttpResponse(status=405)
 
 def adnetwork_game_view(request):
     return render(request, 'ads/network_matrix.html')

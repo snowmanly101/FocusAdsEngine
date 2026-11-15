@@ -14,7 +14,8 @@ from .views import (
     terms_view,
     owner_portal_view,
     adnetwork_game_view,
-    fund_account_balance
+    fund_account_balance,
+    btcpay_webhook_view
 )
 
 router = DefaultRouter()
@@ -35,5 +36,6 @@ urlpatterns = [
     path('dashboard/', dashboard_view, name='dashboard'),
     path('network-matrix/', adnetwork_game_view, name='network-matrix'),
     path('fund-balance/', fund_account_balance, name='fund-balance'),
+    path('api/btcpay-webhook/', btcpay_webhook_view, name='btcpay-webhook'),
     path('', include(router.urls)),
 ]

@@ -34,15 +34,20 @@
         h2 { color: #00f3ff; font-size: 22px; margin-bottom: 15px; }
         p { color: #cbd5e1; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
 
+        .balance-card { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9)); border: 1px solid #38bdf8; padding: 20px 25px; border-radius: 12px; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        .balance-amount { font-size: 28px; font-weight: bold; color: #34d399; }
+
         .form-group { margin-bottom: 20px; }
         label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 8px; font-weight: 600; }
-        input[type="text"], input[type="number"], input[type="file"] { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; font-size: 14px; box-sizing: border-box; }
+        input[type="text"], input[type="number"], input[type="file"], select, textarea { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; font-size: 14px; box-sizing: border-box; }
         
         .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .checkbox-item { background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; padding: 12px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: border-color 0.3s; }
         .checkbox-item:hover { border-color: #00f3ff; }
         .checkbox-item input { accent-color: #00f3ff; }
 
+        .targeting-section { background: rgba(15, 23, 42, 0.5); border: 1px solid #334155; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        
         .notice-box { background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fde68a; padding: 12px; border-radius: 8px; font-size: 12px; margin-bottom: 20px; line-height: 1.5; }
 
         button { width: 100%; padding: 14px; background: linear-gradient(135deg, #00f3ff, #0066ff); border: none; border-radius: 8px; color: #050b14; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
@@ -53,6 +58,10 @@
         th { color: #00f3ff; font-weight: 600; }
         .badge-active { color: #34d399; background: rgba(52, 211, 153, 0.15); padding: 4px 10px; border-radius: 20px; font-size: 12px; }
         .badge-flagged { color: #fca5a5; background: rgba(239, 68, 68, 0.15); padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+        .modal-content { background: #0f172a; border: 1px solid #38bdf8; padding: 30px; border-radius: 12px; max-width: 450px; width: 90%; text-align: center; }
     </style>
 </head>
 <body>
@@ -72,28 +81,38 @@
 
     <div class="main-container">
 
-        <!-- API Key Display & Management Card -->
+        <!-- Top USD Balance Card -->
+        <div class="balance-card">
+            <div>
+                <p style="color: #94a3b8; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Available Balance</p>
+                <div class="balance-amount">${{ profile.account_balance }} USD</div>
+            </div>
+            <div>
+                <button onclick="openBtcModal()" style="width: auto; padding: 10px 20px; font-size: 14px;">+ Top Up Balance (BTCPay)</button>
+            </div>
+        </div>
+
+        <!-- API Credentials Card -->
         <div class="card" style="border-color: #38bdf8;">
             <h2>Your FocusAdsEngine API Credentials</h2>
             <p>Use your active API key to connect external integrations and authenticate automated ad campaign deployments.</p>
-            
             {% if profile.api_key %}
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <input type="text" value="{{ profile.api_key }}" readonly style="background: #050b14; border: 1px solid #334155; color: #38bdf8; padding: 12px; border-radius: 8px; flex: 1; font-family: monospace; font-size: 15px;" id="apiKeyField">
                     <button onclick="navigator.clipboard.writeText(document.getElementById('apiKeyField').value); alert('API Key copied to clipboard!');" style="width: auto; padding: 12px 24px; background: linear-gradient(135deg, #0284c7, #38bdf8); color: #fff; box-shadow: none;">Copy Key</button>
                 </div>
             {% else %}
-                <p style="color: #fca5a5;">No API key issued yet. Complete your verification or contact support.</p>
+                <p style="color: #fca5a5;">No API key issued yet.</p>
             {% endif %}
         </div>
         
         <!-- Deploy Campaign Card -->
         <div class="card">
             <h2>Deploy New Multi-Platform Ad Campaign</h2>
-            <p>Upload your ad creative video, select your target advertising networks (choose all or specific platforms), and set your custom advertising budget rate.</p>
+            <p>Configure campaign description, objectives, targeting specifications, and advertising budget.</p>
 
             <div class="notice-box">
-                <strong>Terms & Conditions Compliance Notice:</strong> All ad campaigns are screened by automated compliance algorithms. If an ad violates community guidelines, copyright, or ad standards, it will be immediately flagged and removed without refund.
+                <strong>Terms & Conditions Compliance Notice:</strong> All ad campaigns are screened by automated compliance algorithms. Violations will result in immediate removal without refund.
             </div>
 
             <form method="POST" enctype="multipart/form-data">
@@ -104,7 +123,53 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Select Target Social Media & Search Platforms (Choose 1, 2, or All)</label>
+                    <label>Campaign Objective</label>
+                    <select name="campaign_objective" required>
+                        <option value="website">Website Traffic & Conversions</option>
+                        <option value="lead">Lead Generation</option>
+                        <option value="sales">Direct Sales / E-commerce</option>
+                        <option value="awareness">Brand Awareness</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Campaign Description & Ad Copy</label>
+                    <textarea name="description" rows="3" required placeholder="Describe what your campaign promotes and what users will see..."></textarea>
+                </div>
+
+                <div class="targeting-section">
+                    <label style="color: #00f3ff; margin-bottom: 12px; font-size: 15px;">Audience & Geographic Targeting</label>
+                    
+                    <div class="form-group">
+                        <label>Audience Reach Mode</label>
+                        <select name="target_audience_type" id="audienceTypeSelect" onchange="toggleTargeting()" required>
+                            <option value="general">General (Open to Everyone Worldwide)</option>
+                            <option value="custom">Custom Targeted Audience</option>
+                        </select>
+                    </div>
+
+                    <div id="customTargetingFields" style="display: none;">
+                        <div class="form-group">
+                            <label>Target Age Range</label>
+                            <input type="text" name="target_age" placeholder="e.g. 18-45">
+                        </div>
+                        <div class="form-group">
+                            <label>Target Countries (Comma separated ISO codes)</label>
+                            <input type="text" name="target_countries" placeholder="e.g. US, GB, CA, NG">
+                        </div>
+                        <div class="form-group">
+                            <label>Target Gender</label>
+                            <select name="target_gender">
+                                <option value="all">All Genders</option>
+                                <option value="male">Male Only</option>
+                                <option value="female">Female Only</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Target Social Media & Search Platforms</label>
                     <div class="checkbox-grid">
                         <label class="checkbox-item"><input type="checkbox" name="platforms" value="Meta"> Meta (FB/IG)</label>
                         <label class="checkbox-item"><input type="checkbox" name="platforms" value="YouTube"> YouTube Ads</label>
@@ -135,7 +200,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Campaign Title</th>
+                        <th>Title & Objective</th>
                         <th>Target Networks</th>
                         <th>Budget</th>
                         <th>Status</th>
@@ -144,7 +209,10 @@
                 <tbody>
                     {% for c in campaigns %}
                     <tr>
-                        <td>{{ c.title }}</td>
+                        <td>
+                            <strong>{{ c.title }}</strong><br>
+                            <small style="color: #94a3b8;">Obj: {{ c.get_campaign_objective_display }}</small>
+                        </td>
                         <td>{{ c.platforms }}</td>
                         <td>${{ c.budget }}</td>
                         <td>
@@ -165,7 +233,29 @@
 
     </div>
 
+    <!-- BTCPay Modal -->
+    <div id="btcModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: #38bdf8; margin-bottom: 10px;">Fund Balance via BTCPay</h2>
+            <p style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;">Send Bitcoin to your channel wallet below. Once 4 blockchain confirmations are reached, your account balance updates automatically.</p>
+            <div style="background: #050b14; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 15px; word-break: break-all; font-family: monospace; font-size: 13px; color: #34d399;" id="btcWalletAddr">
+                bc1qtqnjd0v2ywaffx39jqarjav6w7vkug2t3yuznd
+            </div>
+            <button onclick="navigator.clipboard.writeText('bc1qtqnjd0v2ywaffx39jqarjav6w7vkug2t3yuznd'); alert('Wallet address copied!');" style="padding: 10px; font-size: 13px; margin-bottom: 15px;">Copy Wallet Address</button>
+            <button onclick="closeBtcModal()" style="background: #334155; color: #fff; box-shadow: none; padding: 10px;">Close Window</button>
+        </div>
+    </div>
+
     <script>
+        function openBtcModal() { document.getElementById('btcModal').style.display = 'flex'; }
+        function closeBtcModal() { document.getElementById('btcModal').style.display = 'none'; }
+
+        function toggleTargeting() {
+            var mode = document.getElementById('audienceTypeSelect').value;
+            var customDiv = document.getElementById('customTargetingFields');
+            customDiv.style.display = (mode === 'custom') ? 'block' : 'none';
+        }
+
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
