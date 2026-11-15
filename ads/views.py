@@ -1,5 +1,6 @@
 import json
 import decimal
+import openai
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
@@ -207,10 +208,39 @@ def dashboard_view(request):
     return render(request, 'ads/dashboard.html', {'profile': profile, 'campaigns': campaigns})
 
 @csrf_exempt
+def ai_generate_campaign(request):
+    """
+    AI Assistant Endpoint to parse user prompt into campaign details.
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_prompt = data.get('prompt', '')
+            
+            # Configure OpenAI key (Replace with your actual key or settings variable)
+            openai.api_key = "YOUR_OPENAI_API_KEY"
+            
+            response = openai.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": "You are an expert AI advertising assistant for FocusAdsEngine. Given a user's advertising goal, return valid JSON containing keys: title, objective ('website', 'lead', 'sales', 'awareness'), description, target_age, target_countries, budget."
+                    },
+                    {"role": "user", "content": user_prompt}
+                ],
+                response_format={"type": "json_object"}
+            )
+            
+            ai_data = json.loads(response.choices[0].message.content)
+            return JsonResponse({"status": "success", "campaign": ai_data})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+            
+    return JsonResponse({"status": "invalid method"}, status=405)
+
+@csrf_exempt
 def btcpay_webhook_view(request):
-    """
-    BTCPay Server Webhook Listener detecting 4 block confirmations.
-    """
     if request.method == 'POST':
         try:
             data = json.loads(request.body)

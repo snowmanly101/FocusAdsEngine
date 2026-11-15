@@ -59,7 +59,6 @@
         .badge-active { color: #34d399; background: rgba(52, 211, 153, 0.15); padding: 4px 10px; border-radius: 20px; font-size: 12px; }
         .badge-flagged { color: #fca5a5; background: rgba(239, 68, 68, 0.15); padding: 4px 10px; border-radius: 20px; font-size: 12px; }
 
-        /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
         .modal-content { background: #0f172a; border: 1px solid #38bdf8; padding: 30px; border-radius: 12px; max-width: 450px; width: 90%; text-align: center; }
     </style>
@@ -92,8 +91,20 @@
             </div>
         </div>
 
+        <!-- AI Campaign Assistant Card -->
+        <div class="card" style="border-color: #38bdf8; background: rgba(15, 23, 42, 0.95);">
+            <h2>🤖 AI Campaign Assistant</h2>
+            <p>Tell the AI what you want to promote in plain English. It will automatically write your ad copy and configure your campaign fields!</p>
+            
+            <div class="form-group">
+                <label>Describe your ad goal / product</label>
+                <textarea id="aiPromptInput" rows="2" placeholder="e.g. Create a lead gen campaign for my digital marketing agency targeting business owners in the US aged 25-50..."></textarea>
+            </div>
+            <button type="button" onclick="runAiAssistant()" style="background: linear-gradient(135deg, #38bdf8, #0284c7);">Generate Campaign with AI ✨</button>
+        </div>
+
         <!-- API Credentials Card -->
-        <div class="card" style="border-color: #38bdf8;">
+        <div class="card">
             <h2>Your FocusAdsEngine API Credentials</h2>
             <p>Use your active API key to connect external integrations and authenticate automated ad campaign deployments.</p>
             {% if profile.api_key %}
@@ -115,16 +126,16 @@
                 <strong>Terms & Conditions Compliance Notice:</strong> All ad campaigns are screened by automated compliance algorithms. Violations will result in immediate removal without refund.
             </div>
 
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" id="campaignForm">
                 {% csrf_token %}
                 <div class="form-group">
                     <label>Campaign Title</label>
-                    <input type="text" name="title" required placeholder="e.g. Q4 Global Brand Acceleration">
+                    <input type="text" name="title" id="campaignTitle" required placeholder="e.g. Q4 Global Brand Acceleration">
                 </div>
 
                 <div class="form-group">
                     <label>Campaign Objective</label>
-                    <select name="campaign_objective" required>
+                    <select name="campaign_objective" id="campaignObjective" required>
                         <option value="website">Website Traffic & Conversions</option>
                         <option value="lead">Lead Generation</option>
                         <option value="sales">Direct Sales / E-commerce</option>
@@ -134,7 +145,7 @@
 
                 <div class="form-group">
                     <label>Campaign Description & Ad Copy</label>
-                    <textarea name="description" rows="3" required placeholder="Describe what your campaign promotes and what users will see..."></textarea>
+                    <textarea name="description" id="campaignDescription" rows="3" required placeholder="Describe what your campaign promotes..."></textarea>
                 </div>
 
                 <div class="targeting-section">
@@ -151,15 +162,15 @@
                     <div id="customTargetingFields" style="display: none;">
                         <div class="form-group">
                             <label>Target Age Range</label>
-                            <input type="text" name="target_age" placeholder="e.g. 18-45">
+                            <input type="text" name="target_age" id="targetAge" placeholder="e.g. 18-45">
                         </div>
                         <div class="form-group">
                             <label>Target Countries (Comma separated ISO codes)</label>
-                            <input type="text" name="target_countries" placeholder="e.g. US, GB, CA, NG">
+                            <input type="text" name="target_countries" id="targetCountries" placeholder="e.g. US, GB, CA, NG">
                         </div>
                         <div class="form-group">
                             <label>Target Gender</label>
-                            <select name="target_gender">
+                            <select name="target_gender" id="targetGender">
                                 <option value="all">All Genders</option>
                                 <option value="male">Male Only</option>
                                 <option value="female">Female Only</option>
@@ -181,7 +192,7 @@
 
                 <div class="form-group">
                     <label>Advertising Budget Rate ($ USD)</label>
-                    <input type="number" step="0.01" name="budget" required placeholder="Enter campaign spend limit (e.g. 500.00)">
+                    <input type="number" step="0.01" name="budget" id="campaignBudget" required placeholder="Enter campaign spend limit (e.g. 500.00)">
                 </div>
 
                 <div class="form-group">
@@ -238,7 +249,7 @@
         <div class="modal-content">
             <h2 style="color: #38bdf8; margin-bottom: 10px;">Fund Balance via BTCPay</h2>
             <p style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;">Send Bitcoin to your channel wallet below. Once 4 blockchain confirmations are reached, your account balance updates automatically.</p>
-            <div style="background: #050b14; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 15px; word-break: break-all; font-family: monospace; font-size: 13px; color: #34d399;" id="btcWalletAddr">
+            <div style="background: #050b14; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 15px; word-break: break-all; font-family: monospace; font-size: 13px; color: #34d399;">
                 bc1qtqnjd0v2ywaffx39jqarjav6w7vkug2t3yuznd
             </div>
             <button onclick="navigator.clipboard.writeText('bc1qtqnjd0v2ywaffx39jqarjav6w7vkug2t3yuznd'); alert('Wallet address copied!');" style="padding: 10px; font-size: 13px; margin-bottom: 15px;">Copy Wallet Address</button>
@@ -254,6 +265,52 @@
             var mode = document.getElementById('audienceTypeSelect').value;
             var customDiv = document.getElementById('customTargetingFields');
             customDiv.style.display = (mode === 'custom') ? 'block' : 'none';
+        }
+
+        async function runAiAssistant() {
+            const promptText = document.getElementById('aiPromptInput').value;
+            if (!promptText) {
+                alert('Please enter a prompt for the AI first.');
+                return;
+            }
+            
+            alert('AI Assistant is generating your campaign copy and targeting parameters...');
+            
+            try {
+                const response = await fetch('/api/ai-generate/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ prompt: promptText })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    const camp = data.campaign;
+                    document.getElementById('campaignTitle').value = camp.title || '';
+                    document.getElementById('campaignDescription').value = camp.description || '';
+                    if (camp.objective) {
+                        document.getElementById('campaignObjective').value = camp.objective;
+                    }
+                    if (camp.target_age || camp.target_countries) {
+                        document.getElementById('audienceTypeSelect').value = 'custom';
+                        toggleTargeting();
+                        document.getElementById('targetAge').value = camp.target_age || '';
+                        document.getElementById('targetCountries').value = camp.target_countries || '';
+                    }
+                    if (camp.budget) {
+                        document.getElementById('campaignBudget').value = camp.budget;
+                    }
+                    alert('AI generated campaign successfully! Review your form and hit Launch.');
+                } else {
+                    alert('AI Generation error: ' + (data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Failed to connect to AI assistant endpoint.');
+            }
         }
 
         const canvas = document.getElementById('bg-canvas');
